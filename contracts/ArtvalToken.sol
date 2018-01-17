@@ -146,7 +146,7 @@ contract TokenERC20 {
 /******************************************/
 /*       ADVANCED TOKEN STARTS HERE       */
 /******************************************/
-contract MooToken is Owned, TokenERC20 {
+contract ArtvalToken is Owned, TokenERC20 {
     struct SelectedAppraise {
         uint no;//序号
         address appraiserAddress;//鉴定师地址
@@ -164,7 +164,7 @@ contract MooToken is Owned, TokenERC20 {
     event Mint(address item, address owner, uint price);
     event Rewards(address item, address appraiser, uint reward);
     /* Initializes contract with initial supply tokens to the creator of the contract */
-    function MooToken(
+    function ArtvalToken(
         uint256 initialSupply,
         string tokenName,
         string tokenSymbol,

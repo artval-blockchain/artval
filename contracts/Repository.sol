@@ -1,6 +1,6 @@
 pragma solidity ^0.4.18;
 
-import './MooToken.sol';
+import './ArtvalToken.sol';
 
 /**
  * 仓储合约
@@ -64,8 +64,8 @@ contract Repository is Owned {
      */
     function newWarehouse() public returns(bool) {
         //Check balance of msg.sender
-        MooToken mooToken = MooToken(coinAddress);
-        require(mooToken.balanceOf(msg.sender) > 150000000000000000000);
+        ArtvalToken token = ArtvalToken(coinAddress);
+        require(token.balanceOf(msg.sender) > 150000000000000000000);
 
         WarehouseAsset storage warehouseAsset = warehouseAssets[msg.sender];
         require(warehouseAsset.wareAddress == 0);
@@ -116,8 +116,8 @@ contract Repository is Owned {
         ArticleItems articleItems = ArticleItems(artItemsAddress);
         articleItems.setWareHousing(_itemAddress, msg.sender);
         //message to token contract 21
-        MooToken mooToken = MooToken(coinAddress);
-        mooToken.preMint(msg.sender, _itemAddress);
+        ArtvalToken token = ArtvalToken(coinAddress);
+        token.preMint(msg.sender, _itemAddress);
 
         //event
         DigItem(_itemAddress,msg.sender);
@@ -136,8 +136,8 @@ contract Repository is Owned {
         ArticleItems articleItems = ArticleItems(artItemsAddress);
         articleItems.storeItem(_itemAddress, msg.sender);
         //real mine
-        MooToken mooToken = MooToken(coinAddress);
-        mooToken.mintToken(msg.sender, _itemAddress);
+        ArtvalToken token = ArtvalToken(coinAddress);
+        token.mintToken(msg.sender, _itemAddress);
         artItem.state = 7;
 
         StoreItem(_itemAddress,msg.sender);
@@ -158,7 +158,7 @@ contract Repository is Owned {
     }
 
     function isValidateAccount(address account) view public returns(bool) {
-        MooToken mooToken = MooToken(coinAddress);
-        return (mooToken.balanceOf(account) > 1500);
+        ArtvalToken token = ArtvalToken(coinAddress);
+        return (token.balanceOf(account) > 1500);
     }
 }
