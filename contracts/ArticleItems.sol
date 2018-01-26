@@ -1,6 +1,6 @@
 pragma solidity ^0.4.18;
 
-import "./AppraisersContract.sol";
+import "./Appraisers.sol";
 import "./Repository.sol";
 
 /**
