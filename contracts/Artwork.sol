@@ -52,4 +52,13 @@ contract Artwork is Ownable {
     function artInfo(bytes32 artHash) view public returns(ArtInfo) {
         return arts[artHash];
     }
+
+    function artOwner(bytes32 artHash) view public returns(address) {
+        address[] storage owners = artTransactions[artHash];
+        if (owners.length > 0) {
+            return owners[owners.length - 1];
+        } else {
+            return 0;
+        }
+    }
 }
