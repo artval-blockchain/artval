@@ -89,10 +89,28 @@ contract ArtvalNewToken is Ownable, ERC223Interface {
     * @dev Query an address is in frozen or not. If not, return 0; else return the frozentill block number
     *param _adr             the address to check frozen status
     */
-    function checkFrozenStatus(address _adr) view public{
+    function checkFrozenStatus(address _adr) public returns(uint){
 
         if(frozencheck == true ){
             FrozenState  storage fstate = frozens[_adr];
+            if(fstate.frozen == true){
+                if(fstate.frozentill < block.number)
+                    fstate.frozen = false;
+                else{
+                    return fstate.frozentill;
+                }
+            }
+        }
+        return 0;
+    }
+
+    /**
+    * @dev Query self address is in frozen or not. If not, return 0; else return the frozentill block number
+    */
+    function checkSelfFrozenStatus() public returns(uint){
+
+        if(frozencheck == true ){
+            FrozenState  storage fstate = frozens[msg.sender];
             if(fstate.frozen == true){
                 if(fstate.frozentill < block.number)
                     fstate.frozen = false;
