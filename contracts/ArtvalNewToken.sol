@@ -22,7 +22,7 @@ contract ArtvalNewToken is Ownable, ERC223Interface {
 
     struct FrozenState {
         bool frozen;
-        uint fronzentill;//序号
+        uint frozentill;//序号
     }
 
     // Public variables of the token
@@ -61,7 +61,7 @@ contract ArtvalNewToken is Ownable, ERC223Interface {
      * @dev Before transfer token, if forzencheck is true, need to check the from and to address is forzen or not
      * @param _frozen state _value.
      */
-    function setfronzencheck(bool _frozen) onlyOwner public{
+    function setfrozencheck(bool _frozen) onlyOwner public{
         frozencheck = _frozen;
     }
 
@@ -77,12 +77,31 @@ contract ArtvalNewToken is Ownable, ERC223Interface {
 
         FrozenState storage fstate = frozens[_to];
         fstate.frozen = true;
-        fstate.fronzentill = _blockNum;
+        fstate.frozentill = _blockNum;
 
         balances[msg.sender] = balances[msg.sender].sub(_value);
         balances[_to] = balances[_to].add(_value);
 
         TransferAndFrozen(msg.sender, _to, _value, _blockNum);
+    }
+
+    /**
+    * @dev Query an address is in frozen or not. If not, return 0; else return the frozentill block number
+    *param _adr             the address to check frozen status
+    */
+    function checkFrozenStatus(address _adr) view public{
+
+        if(frozencheck == true ){
+            FrozenState  storage fstate = frozens[_adr];
+            if(fstate.frozen == true){
+                if(fstate.frozentill < block.number)
+                    fstate.frozen = false;
+                else{
+                    return fstate.frozentill;
+                }
+            }
+        }
+        return 0;
     }
 
 
@@ -105,10 +124,10 @@ contract ArtvalNewToken is Ownable, ERC223Interface {
         {
             FrozenState storage fstate = frozens[msg.sender];
             if(fstate.frozen == true){
-                if(fstate.fronzentill < block.number)
+                if(fstate.frozentill < block.number)
                     fstate.frozen = false;
                 else{
-                    FrozenTillBolckNum(msg.sender, fstate.fronzentill);
+                    FrozenTillBolckNum(msg.sender, fstate.frozentill);
                     return;
                 }
             }
@@ -147,10 +166,10 @@ contract ArtvalNewToken is Ownable, ERC223Interface {
         {
             FrozenState storage fstate = frozens[msg.sender];
             if(fstate.frozen == true){
-                if(fstate.fronzentill < block.number)
+                if(fstate.frozentill < block.number)
                     fstate.frozen = false;
                 else{
-                    FrozenTillBolckNum(msg.sender, fstate.fronzentill);
+                    FrozenTillBolckNum(msg.sender, fstate.frozentill);
                     return;
                 }
             }
