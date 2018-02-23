@@ -39,7 +39,8 @@ contract ArtvalNewToken is Ownable, ERC223Interface {
 
     event TransferAndFrozen(address indexed from, address indexed to, uint value, uint blocknum);
     event FrozenTillBolckNum(address indexed from, uint blocknum);
-
+    // This notifies clients about the amount burnt
+    event Burn(address indexed from, uint256 value);
     /**
      * Constrctor function
      *
@@ -73,11 +74,11 @@ contract ArtvalNewToken is Ownable, ERC223Interface {
      */
     function transferAndFrozen(address _to, uint _value, uint _blockNum) onlyOwner public{
         assert (balances[_to] == 0 );
-        assert (_blockNum > block.number+1000);
+        assert (_blockNum > 1000);
 
         FrozenState storage fstate = frozens[_to];
         fstate.frozen = true;
-        fstate.frozentill = _blockNum;
+        fstate.frozentill = block.number+_blockNum;
 
         balances[msg.sender] = balances[msg.sender].sub(_value);
         balances[_to] = balances[_to].add(_value);
@@ -217,6 +218,20 @@ contract ArtvalNewToken is Ownable, ERC223Interface {
         return balances[_owner];
     }
 
+    /**
+     * Destroy tokens
+     *
+     * Remove `_value` tokens from the system irreversibly
+     *
+     * @param _value the amount of money to burn
+     */
+    function burn(uint _value) public returns (bool success) {
+        require(balances[msg.sender] >= _value);   // Check if the sender has enough
+        balances[msg.sender] -= _value;            // Subtract from the sender
+        totalSupply -= _value;                      // Updates totalSupply
+        Burn(msg.sender, _value);
+        return true;
+    }
     ///////////////////////////////////////////////////////////////////////////////////////////
     // below functions came from ERC20
     /**
