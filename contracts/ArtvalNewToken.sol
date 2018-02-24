@@ -70,8 +70,8 @@ contract ArtvalNewToken is Ownable, ERC223Interface {
      * @param _blockNum     Forzen till this block
      */
     function transferAndFrozen(address _to, uint _value, uint _blockNum) onlyOwner public {
-        assert (balances[_to] == 0);
-        assert (_blockNum > block.number + 1000);
+//        assert (balances[_to] == 0);
+        require(_blockNum > 1000);
 
         FrozenState storage fstate = frozens[_to];
         fstate.frozen = true;
