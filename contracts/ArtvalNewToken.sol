@@ -114,8 +114,9 @@ contract ArtvalNewToken is Ownable, ERC223Interface {
     /**
      * @dev Query frozen status for address.
      */
-    function frozenStatusOf(address _addr) view public returns(FrozenState) {
-        return frozens[_addr];
+    function frozenStatusOf(address _addr) view public returns(bool, uint) {
+        FrozenState storage state = frozens[_addr];
+        return (state.frozen, state.frozentill);
     }
 
     /**
