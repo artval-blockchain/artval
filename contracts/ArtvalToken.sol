@@ -24,11 +24,7 @@ contract ArtvalToken is Ownable, ERC223Token {
      *
      * Initializes contract with initial supply tokens to the creator of the contract
      */
-    function ArtvalToken(
-        uint256 initialSupply,
-        string tokenName,
-        string tokenSymbol
-    ) public {
+    function ArtvalToken(uint256 initialSupply, string tokenName, string tokenSymbol) public {
         totalSupply = initialSupply * 10 ** uint256(decimals);  // Update total supply with the decimal amount
         balances[msg.sender] = totalSupply;                // Give the creator all initial tokens
         name = tokenName;                                   // Set the name for display purposes

@@ -33,7 +33,7 @@ contract ArtvalNewToken is Ownable, ERC223Interface {
     uint256 public totalSupply;
     // switch to check frozen state
     bool public frozencheck;
-    mapping (address => mapping (address => uint256)) public allowance;
+    mapping(address => mapping(address => uint256)) public allowance;
     mapping(address => uint) balances; // List of user balances.
     mapping(address => FrozenState)frozens; //List of user forzen state
 
@@ -41,16 +41,13 @@ contract ArtvalNewToken is Ownable, ERC223Interface {
     event FrozenTillBolckNum(address indexed from, uint blocknum);
     // This notifies clients about the amount burnt
     event Burn(address indexed from, uint256 value);
+
     /**
      * Constrctor function
      *
      * Initializes contract with initial supply tokens to the creator of the contract
      */
-    function ArtvalNewToken(
-        uint256 initialSupply,
-        string tokenName,
-        string tokenSymbol
-    ) public {
+    function ArtvalNewToken(uint256 initialSupply, string tokenName, string tokenSymbol) public {
         totalSupply = initialSupply * 10 ** uint256(decimals);  // Update total supply with the decimal amount
         balances[msg.sender] = totalSupply;                // Give the creator all initial tokens
         name = tokenName;                                   // Set the name for display purposes
@@ -62,7 +59,7 @@ contract ArtvalNewToken is Ownable, ERC223Interface {
      * @dev Before transfer token, if forzencheck is true, need to check the from and to address is forzen or not
      * @param _frozen state _value.
      */
-    function setfrozencheck(bool _frozen) onlyOwner public{
+    function setfrozencheck(bool _frozen) onlyOwner public {
         frozencheck = _frozen;
     }
 
@@ -72,13 +69,13 @@ contract ArtvalNewToken is Ownable, ERC223Interface {
      * @param _value        Amount of tokens that will be fransferred
      * @param _blockNum     Forzen till this block
      */
-    function transferAndFrozen(address _to, uint _value, uint _blockNum) onlyOwner public{
-        assert (balances[_to] == 0 );
-        assert (_blockNum > 1000);
+    function transferAndFrozen(address _to, uint _value, uint _blockNum) onlyOwner public {
+        assert (balances[_to] == 0);
+        assert (_blockNum > block.number + 1000);
 
         FrozenState storage fstate = frozens[_to];
         fstate.frozen = true;
-        fstate.frozentill = block.number+_blockNum;
+        fstate.frozentill = block.number + _blockNum;
 
         balances[msg.sender] = balances[msg.sender].sub(_value);
         balances[_to] = balances[_to].add(_value);
@@ -87,43 +84,31 @@ contract ArtvalNewToken is Ownable, ERC223Interface {
     }
 
     /**
-    * @dev Query an address is in frozen or not. If not, return 0; else return the frozentill block number
-    *param _adr             the address to check frozen status
-    */
-    function checkFrozenStatus(address _adr) public returns(uint){
+     * @dev Query an address is in frozen or not. If not, return 0; else return the frozentill block number
+     * param _adr             the address to check frozen status
+     */
+    function checkFrozenStatus(address _adr) public returns(uint) {
 
-        if(frozencheck == true ){
+        if (frozencheck == true) {
             FrozenState  storage fstate = frozens[_adr];
-            if(fstate.frozen == true){
-                if(fstate.frozentill < block.number)
+            if (fstate.frozen == true) {
+                if (fstate.frozentill < block.number) {
                     fstate.frozen = false;
-                else{
+                } else {
                     return fstate.frozentill;
                 }
             }
         }
+
         return 0;
     }
 
     /**
     * @dev Query self address is in frozen or not. If not, return 0; else return the frozentill block number
     */
-    function checkSelfFrozenStatus() public returns(uint){
-
-        if(frozencheck == true ){
-            FrozenState  storage fstate = frozens[msg.sender];
-            if(fstate.frozen == true){
-                if(fstate.frozentill < block.number)
-                    fstate.frozen = false;
-                else{
-                    return fstate.frozentill;
-                }
-            }
-        }
-        return 0;
+    function checkSelfFrozenStatus() public returns(uint) {
+        return checkFrozenStatus(msg.sender);
     }
-
-
 
     /**
      * @dev Transfer the specified amount of tokens to the specified address.
@@ -139,17 +124,10 @@ contract ArtvalNewToken is Ownable, ERC223Interface {
     function transfer(address _to, uint _value, bytes _data) public {
         // Standard function transfer similar to ERC20 transfer with no _data .
         // Added due to backwards compatibility reasons .
-        if(frozencheck == true)
-        {
-            FrozenState storage fstate = frozens[msg.sender];
-            if(fstate.frozen == true){
-                if(fstate.frozentill < block.number)
-                    fstate.frozen = false;
-                else{
-                    FrozenTillBolckNum(msg.sender, fstate.frozentill);
-                    return;
-                }
-            }
+        uint frozenTill = checkFrozenStatus(msg.sender);
+        if (frozenTill > 0) {
+            FrozenTillBolckNum(msg.sender, frozenTill);
+            return;
         }
 
         uint codeLength;
@@ -178,21 +156,14 @@ contract ArtvalNewToken is Ownable, ERC223Interface {
      * @param _value Amount of tokens that will be transferred.
      */
     function transfer(address _to, uint _value) public {
+        uint frozenTill = checkFrozenStatus(msg.sender);
+        if (frozenTill > 0) {
+            FrozenTillBolckNum(msg.sender, frozenTill);
+            return;
+        }
+
         uint codeLength;
         bytes memory empty;
-
-        if(frozencheck == true)
-        {
-            FrozenState storage fstate = frozens[msg.sender];
-            if(fstate.frozen == true){
-                if(fstate.frozentill < block.number)
-                    fstate.frozen = false;
-                else{
-                    FrozenTillBolckNum(msg.sender, fstate.frozentill);
-                    return;
-                }
-            }
-        }
 
         assembly {
         // Retrieve the size of the code on target address, this needs assembly .
@@ -227,11 +198,12 @@ contract ArtvalNewToken is Ownable, ERC223Interface {
      */
     function burn(uint _value) public returns (bool success) {
         require(balances[msg.sender] >= _value);   // Check if the sender has enough
-        balances[msg.sender] -= _value;            // Subtract from the sender
-        totalSupply -= _value;                      // Updates totalSupply
+        balances[msg.sender].sub(_value);
+        totalSupply.sub(_value);
         Burn(msg.sender, _value);
         return true;
     }
+
     ///////////////////////////////////////////////////////////////////////////////////////////
     // below functions came from ERC20
     /**
